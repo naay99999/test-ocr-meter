@@ -1,0 +1,675 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Digital Meter OCR API",
+    "description": "API สำหรับอ่านเลขมิเตอร์ (Production Ready + Defensive Programming)",
+    "version": "2.6.8"
+  },
+  "paths": {
+    "/uploadimage": {
+      "post": {
+        "tags": [
+          "1. File Upload"
+        ],
+        "summary": "Upload Image",
+        "description": "**อัปโหลดไฟล์รูปภาพโดยตรง แล้วรอรับผลลัพธ์ทันที**\n- รับไฟล์รูปภาพโดยตรง (เหมาะสำหรับ Developer เทสต์ระบบ)\n- คืนค่า 200 หากสำเร็จ หรือ 422 หากอ่านไม่ได้",
+        "operationId": "upload_image_uploadimage_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_image_uploadimage_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/uploadimage/batch": {
+      "post": {
+        "tags": [
+          "1. File Upload"
+        ],
+        "summary": "Upload Image Batch",
+        "description": "**อัปโหลดหลายไฟล์พร้อมกัน** คืนค่าเป็น List ของผลลัพธ์",
+        "operationId": "upload_image_batch_uploadimage_batch_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_image_batch_uploadimage_batch_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/imageurl": {
+      "post": {
+        "tags": [
+          "2. Image URL"
+        ],
+        "summary": "Image Url Sync",
+        "description": "**(แนะนำสำหรับ Mobile App)** ส่งลิงก์รูปภาพมาให้เซิร์ฟเวอร์ เซิร์ฟเวอร์จะทำการโหลดรูปแล้วประมวลผลให้ทันที\n\n- **image_url**: แนบ URL ของรูปภาพมาได้เลย\n- **overlay**: (Optional) พิกัดตีกรอบเพื่อตัดรูปก่อนเข้า AI (ช่วยให้ AI เร็วและแม่นขึ้น)\n- **gauge_min / gauge_max**: ใส่มาได้ ระบบจะไม่พัง (รับไว้เพื่อเข้ากับโครงสร้างเก่า)",
+        "operationId": "image_url_sync_imageurl_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageUrlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/imageurl/batch": {
+      "post": {
+        "tags": [
+          "2. Image URL"
+        ],
+        "summary": "Image Url Sync Batch",
+        "description": "รับลิงก์รูปภาพหลายรูปรวดเดียว รอรับผลลัพธ์เป็น Array",
+        "operationId": "image_url_sync_batch_imageurl_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/ImageUrlRequest"
+                },
+                "type": "array",
+                "title": "Payloads"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/async-callback/imageurl": {
+      "post": {
+        "tags": [
+          "3. Async Callback"
+        ],
+        "summary": "Async Callback Single",
+        "description": "ส่งลิงก์รูปภาพมา ระบบจะรับเรื่องและตอบ `accepted` ทันที \nเมื่อทำงานเสร็จ ระบบจะนำผลลัพธ์ไปยิง **POST** กลับไปที่ `callback_url` ที่คุณให้มา\n\n---\n### Fallback & Retry\n- **Retry:** หากส่ง callback ล้มเหลว ระบบจะพยายามส่งซ้ำ 3 ครั้ง\n- **Fallback:** หากเน็ตฝั่งรับพัง คุณสามารถใช้ `task_id` มาดึงผลย้อนหลังได้ที่ `/tasks/{id}`",
+        "operationId": "async_callback_single_async_callback_imageurl_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsyncCallbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/async-callback/imageurl/batch": {
+      "post": {
+        "tags": [
+          "3. Async Callback"
+        ],
+        "summary": "Async Callback Batch",
+        "description": "(Batch) รับหลาย URL พร้อมกัน ผลลัพธ์ที่ส่งกลับไปตรง `results` จะเป็น Array",
+        "operationId": "async_callback_batch_async_callback_imageurl_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/AsyncCallbackRequest"
+                },
+                "type": "array",
+                "title": "Payloads"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "3. Async Callback"
+        ],
+        "summary": "Get Task Result",
+        "description": "**ดึงผลลัพธ์ย้อนหลัง** (ระบบจะเก็บข้อมูลไว้ให้ชั่วคราวเป็นเวลา 24 ชั่วโมง)",
+        "operationId": "get_task_result_tasks__task_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AsyncAcceptedResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "สถานะการรับงาน (accepted = รับเรื่องแล้ว)",
+            "default": "accepted"
+          },
+          "task_id": {
+            "type": "string",
+            "title": "Task Id",
+            "description": "ID อ้างอิงสำหรับงานนี้",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "ข้อความแจ้งเตือน",
+            "default": "Processing started in background."
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id"
+        ],
+        "title": "AsyncAcceptedResponse"
+      },
+      "AsyncCallbackRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Image Url",
+            "description": "URL ของรูปภาพที่ต้องการให้อ่านค่า",
+            "example": "https://example.com/meter.jpg"
+          },
+          "overlay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OverlayData"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(Optional) พิกัดตีกรอบเพื่อตัดรูปก่อนเข้า AI (ช่วยให้ AI เร็วและแม่นขึ้น)"
+          },
+          "gauge_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gauge Min",
+            "description": "(Optional) รองรับพารามิเตอร์ gauge_min ตามระบบเก่า"
+          },
+          "gauge_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gauge Max",
+            "description": "(Optional) รองรับพารามิเตอร์ gauge_max ตามระบบเก่า"
+          },
+          "callback_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Callback Url",
+            "description": "URL ของระบบคุณที่จะรอรับ JSON ผลลัพธ์เมื่อทำงานเสร็จ",
+            "example": "https://your-app.com/api/receive-ocr"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_url",
+          "callback_url"
+        ],
+        "title": "AsyncCallbackRequest"
+      },
+      "Body_upload_image_batch_uploadimage_batch_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_image_batch_uploadimage_batch_post"
+      },
+      "Body_upload_image_uploadimage_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_image_uploadimage_post"
+      },
+      "FailResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "example": "อ่านค่ามิเตอร์ไม่ได้ กรุณาถ่ายรูปใหม่"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Details",
+            "description": "\n        รายละเอียดข้อผิดพลาด (ถ้ามี) รวบรวม Error ทั้งหมดที่ระบบสามารถแจ้งเตือนได้:\n        \n        [1] ข้อผิดพลาดระดับ OBB (หาตำแหน่งไม่เจอ)\n        - \"Target box not found.\" : ไม่พบกรอบมิเตอร์ ID หรือ Value ในภาพเลย\n\n        [2] ข้อผิดพลาดระดับ OCR (อ่านตัวเลขไม่ได้)\n        - \"No digits found\" : หาตัวเลขในกรอบไม่เจอเลย\n\n        [3] คำเตือนเรื่องความแม่นยำ (Warnings)\n        - \"Col X: Abnormal roll.\" : พบตัวเลขซ้อนกันในหลักที่ X (Rolling) แบบผิดปกติ\n        - \"Col X: Unclear stacked digits.\" : พบตัวเลขซ้อนกันและระบุค่าที่ชัดเจนไม่ได้\n        - \"Col X: Too many digits (X).\" : เจอตัวเลขซ้อนกันมากกว่า 3 ตัว (Noise)\n        - \"ID Warning: Length is X (\u003C=4)\" : ความยาว ID มี 4 ตัวหรือน้อยกว่า\n\n        [4] ข้อผิดพลาดเรื่องความยาว (Length Checks)\n        - \"Length Error: Elec expected 6, found X\" : ความยาวมิเตอร์ไฟไม่เท่ากับ 6\n        - \"Length Error: Water expected 4 or 6, found X\"\n        - \"Length Error: Water_7 expected 7, found X\"\n    ",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "FailResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImageUrlRequest": {
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Image Url",
+            "description": "URL ของรูปภาพที่ต้องการให้อ่านค่า",
+            "example": "https://example.com/meter.jpg"
+          },
+          "overlay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OverlayData"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "(Optional) พิกัดตีกรอบเพื่อตัดรูปก่อนเข้า AI (ช่วยให้ AI เร็วและแม่นขึ้น)"
+          },
+          "gauge_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gauge Min",
+            "description": "(Optional) รองรับพารามิเตอร์ gauge_min ตามระบบเก่า"
+          },
+          "gauge_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gauge Max",
+            "description": "(Optional) รองรับพารามิเตอร์ gauge_max ตามระบบเก่า"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_url"
+        ],
+        "title": "ImageUrlRequest"
+      },
+      "OverlayData": {
+        "properties": {
+          "overlay_top": {
+            "type": "integer",
+            "title": "Overlay Top",
+            "description": "พิกัดจุดเริ่มต้นแกน Y (บนสุด)"
+          },
+          "overlay_left": {
+            "type": "integer",
+            "title": "Overlay Left",
+            "description": "พิกัดจุดเริ่มต้นแกน X (ซ้ายสุด)"
+          },
+          "overlay_width": {
+            "type": "integer",
+            "title": "Overlay Width",
+            "description": "ความกว้างของกรอบ (ต้องมากกว่า 0)"
+          },
+          "overlay_height": {
+            "type": "integer",
+            "title": "Overlay Height",
+            "description": "ความสูงของกรอบ (ต้องมากกว่า 0)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overlay_top",
+          "overlay_left",
+          "overlay_width",
+          "overlay_height"
+        ],
+        "title": "OverlayData"
+      },
+      "SuccessData": {
+        "properties": {
+          "meterId": {
+            "type": "string",
+            "title": "Meterid",
+            "description": "เลขรหัสประจำมิเตอร์",
+            "example": "12345"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "ค่าตัวเลขบนหน้าปัด (แปลงเป็น Number แล้ว)",
+            "example": 991.1
+          }
+        },
+        "type": "object",
+        "required": [
+          "meterId",
+          "value"
+        ],
+        "title": "SuccessData"
+      },
+      "SuccessResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SuccessData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "SuccessResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
